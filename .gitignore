@@ -1,0 +1,61 @@
+# Java
+*.class
+*.log
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+target/
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# Spring Boot
+application-local.properties
+application-local.yml
+
+# Node.js
+node_modules/
+.next/
+out/
+dist/
+build/
+.npm
+.eslintcache
+.yarn-integrity
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Database
+*.db
+*.sqlite
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo

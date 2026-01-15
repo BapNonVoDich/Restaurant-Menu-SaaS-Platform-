@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!-- Subscriptions Table -->
+    <changeSet id="001-create-subscriptions-table" author="restaurant-saas">
+        <createTable tableName="subscriptions">
+            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="store_id" type="UUID">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="plan_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_date" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="payment_transaction_id" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="idx_subscriptions_store_id" tableName="subscriptions">
+            <column name="store_id"/>
+        </createIndex>
+        <createIndex indexName="idx_subscriptions_status" tableName="subscriptions">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Payment Transactions Table -->
+    <changeSet id="002-create-payment-transactions-table" author="restaurant-saas">
+        <createTable tableName="payment_transactions">
+            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="transaction_ref" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="order_id" type="UUID">
+                <constraints nullable="true"/>
+            </column>
+            <column name="subscription_id" type="UUID">
+                <constraints nullable="true"/>
+            </column>
+            <column name="store_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="currency" type="VARCHAR(3)" defaultValue="VND">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payment_method" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vnpay_transaction_id" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="vnpay_response_code" type="VARCHAR(10)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="failure_reason" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="idx_payment_transactions_store_id" tableName="payment_transactions">
+            <column name="store_id"/>
+        </createIndex>
+        <createIndex indexName="idx_payment_transactions_ref" tableName="payment_transactions">
+            <column name="transaction_ref"/>
+        </createIndex>
+        <addForeignKeyConstraint
+            baseTableName="payment_transactions"
+            baseColumnNames="subscription_id"
+            constraintName="fk_payment_transactions_subscription"
+            referencedTableName="subscriptions"
+            referencedColumnNames="id"
+            onDelete="SET NULL"/>
+    </changeSet>
+
+</databaseChangeLog>

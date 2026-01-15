@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!-- Add menu_html field to stores table -->
+    <changeSet id="003-add-menu-html-field" author="restaurant-saas">
+        <addColumn tableName="stores">
+            <column name="menu_html" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <comment>Add menu_html field to store custom WYSIWYG menu HTML</comment>
+    </changeSet>
+
+</databaseChangeLog>

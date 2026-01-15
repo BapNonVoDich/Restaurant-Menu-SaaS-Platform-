@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!-- Stores Table -->
+    <changeSet id="001-create-stores-table" author="restaurant-saas">
+        <createTable tableName="stores">
+            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="owner_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="slug" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="sub_status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sub_end_date" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="idx_stores_owner_id" tableName="stores">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex indexName="idx_stores_slug" tableName="stores">
+            <column name="slug"/>
+        </createIndex>
+        <createIndex indexName="idx_stores_sub_status" tableName="stores">
+            <column name="sub_status"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Categories Table -->
+    <changeSet id="002-create-categories-table" author="restaurant-saas">
+        <createTable tableName="categories">
+            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="store_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+            baseTableName="categories"
+            baseColumnNames="store_id"
+            constraintName="fk_categories_store"
+            referencedTableName="stores"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+        <createIndex indexName="idx_categories_store_id" tableName="categories">
+            <column name="store_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Products Table -->
+    <changeSet id="003-create-products-table" author="restaurant-saas">
+        <createTable tableName="products">
+            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="store_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category_id" type="UUID">
+                <constraints nullable="true"/>
+            </column>
+            <column name="name" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="price" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image_url" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="is_available" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+            baseTableName="products"
+            baseColumnNames="store_id"
+            constraintName="fk_products_store"
+            referencedTableName="stores"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+        <addForeignKeyConstraint
+            baseTableName="products"
+            baseColumnNames="category_id"
+            constraintName="fk_products_category"
+            referencedTableName="categories"
+            referencedColumnNames="id"
+            onDelete="SET NULL"/>
+        <createIndex indexName="idx_products_store_id" tableName="products">
+            <column name="store_id"/>
+        </createIndex>
+        <createIndex indexName="idx_products_category_id" tableName="products">
+            <column name="category_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!-- Create menu_templates table -->
+    <changeSet id="004-create-menu-templates-table" author="restaurant-saas">
+        <createTable tableName="menu_templates">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="store_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="template_data" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint
+            baseTableName="menu_templates"
+            baseColumnNames="store_id"
+            constraintName="fk_menu_templates_store"
+            referencedTableName="stores"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+        
+        <createIndex tableName="menu_templates" indexName="idx_menu_templates_store_id">
+            <column name="store_id"/>
+        </createIndex>
+        
+        <comment>Create menu_templates table for storing menu templates (max 3 per store)</comment>
+    </changeSet>
+</databaseChangeLog>

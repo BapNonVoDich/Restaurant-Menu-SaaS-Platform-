@@ -1,0 +1,36 @@
+version: '3.8'
+
+# Development override file
+# Use: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  gateway:
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    volumes:
+      - ./services/gateway/src:/app/src
+    command: ["sh", "-c", "mvn spring-boot:run"]
+
+  identity:
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    volumes:
+      - ./services/identity/src:/app/src
+
+  catalog:
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    volumes:
+      - ./services/catalog/src:/app/src
+
+  order:
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    volumes:
+      - ./services/order/src:/app/src
+
+  payment:
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    volumes:
+      - ./services/payment/src:/app/src

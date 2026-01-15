@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!-- Add trial period fields to stores table -->
+    <changeSet id="002-add-trial-fields" author="restaurant-saas">
+        <addColumn tableName="stores">
+            <column name="trial_start_date" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="trial_end_date" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <comment>Add trial period fields for 7-day trial access</comment>
+    </changeSet>
+
+    <!-- Create product_categories junction table for many-to-many relationship -->
+    <changeSet id="003-create-product-categories-table" author="restaurant-saas">
+        <createTable tableName="product_categories">
+            <column name="product_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="product_categories" columnNames="product_id, category_id" constraintName="pk_product_categories"/>
+        <addForeignKeyConstraint
+            baseTableName="product_categories"
+            baseColumnNames="product_id"
+            constraintName="fk_product_categories_product"
+            referencedTableName="products"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+        <addForeignKeyConstraint
+            baseTableName="product_categories"
+            baseColumnNames="category_id"
+            constraintName="fk_product_categories_category"
+            referencedTableName="categories"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+        <createIndex indexName="idx_product_categories_product_id" tableName="product_categories">
+            <column name="product_id"/>
+        </createIndex>
+        <createIndex indexName="idx_product_categories_category_id" tableName="product_categories">
+            <column name="category_id"/>
+        </createIndex>
+        <comment>Create junction table for many-to-many relationship between products and categories</comment>
+    </changeSet>
+
+    <!-- Migrate existing data: Move category_id relationships to junction table -->
+    <changeSet id="004-migrate-category-data" author="restaurant-saas">
+        <sql>
+            INSERT INTO product_categories (product_id, category_id)
+            SELECT id, category_id
+            FROM products
+            WHERE category_id IS NOT NULL;
+        </sql>
+        <comment>Migrate existing product-category relationships to junction table</comment>
+    </changeSet>
+
+    <!-- Drop category_id column from products table -->
+    <changeSet id="005-remove-category-id-from-products" author="restaurant-saas">
+        <dropForeignKeyConstraint baseTableName="products" constraintName="fk_products_category"/>
+        <dropIndex tableName="products" indexName="idx_products_category_id"/>
+        <dropColumn tableName="products" columnName="category_id"/>
+        <comment>Remove category_id column as we now use many-to-many relationship</comment>
+    </changeSet>
+
+</databaseChangeLog>

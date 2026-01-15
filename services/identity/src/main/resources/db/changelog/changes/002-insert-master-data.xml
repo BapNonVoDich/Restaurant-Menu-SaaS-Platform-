@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!-- Insert Permissions -->
+    <changeSet id="002-insert-permissions" author="restaurant-saas">
+        <sql>
+            INSERT INTO permissions (id, code, description, created_at)
+            VALUES
+            (gen_random_uuid(), 'STORE_CREATE', 'Create a new store', CURRENT_TIMESTAMP),
+            (gen_random_uuid(), 'MENU_READ', 'Read menu items', CURRENT_TIMESTAMP),
+            (gen_random_uuid(), 'MENU_WRITE', 'Create/Update/Delete menu items', CURRENT_TIMESTAMP),
+            (gen_random_uuid(), 'ORDER_READ', 'Read orders', CURRENT_TIMESTAMP),
+            (gen_random_uuid(), 'ORDER_WRITE', 'Create/Update orders', CURRENT_TIMESTAMP),
+            (gen_random_uuid(), 'SUBSCRIPTION_MANAGE', 'Manage subscriptions', CURRENT_TIMESTAMP);
+        </sql>
+    </changeSet>
+
+    <!-- Insert Default Roles -->
+    <changeSet id="003-insert-default-roles" author="restaurant-saas">
+        <sql>
+            INSERT INTO roles (id, name, store_id, created_at)
+            VALUES
+            (gen_random_uuid(), 'SUPER_ADMIN', NULL, CURRENT_TIMESTAMP),
+            (gen_random_uuid(), 'STORE_OWNER', NULL, CURRENT_TIMESTAMP),
+            (gen_random_uuid(), 'WAITER', NULL, CURRENT_TIMESTAMP);
+        </sql>
+    </changeSet>
+
+    <!-- Assign Permissions to Roles -->
+    <changeSet id="004-assign-permissions-to-roles" author="restaurant-saas">
+        <!-- SUPER_ADMIN gets all permissions -->
+        <sql>
+            INSERT INTO role_permissions (role_id, permission_id)
+            SELECT r.id, p.id
+            FROM roles r
+            CROSS JOIN permissions p
+            WHERE r.name = 'SUPER_ADMIN';
+        </sql>
+
+        <!-- STORE_OWNER gets: STORE_CREATE, MENU_WRITE, ORDER_READ -->
+        <sql>
+            INSERT INTO role_permissions (role_id, permission_id)
+            SELECT r.id, p.id
+            FROM roles r
+            CROSS JOIN permissions p
+            WHERE r.name = 'STORE_OWNER'
+            AND p.code IN ('STORE_CREATE', 'MENU_WRITE', 'ORDER_READ');
+        </sql>
+
+        <!-- WAITER gets: ORDER_READ, ORDER_WRITE -->
+        <sql>
+            INSERT INTO role_permissions (role_id, permission_id)
+            SELECT r.id, p.id
+            FROM roles r
+            CROSS JOIN permissions p
+            WHERE r.name = 'WAITER'
+            AND p.code IN ('ORDER_READ', 'ORDER_WRITE');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

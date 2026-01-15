@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* SaaS Design System Colors - Soft UI Evolution */
+    --color-primary: #2563EB;
+    --color-primary-light: #3B82F6;
+    --color-secondary: #3B82F6;
+    --color-cta: #F97316;
+    --color-background: #F8FAFC;
+    --color-text: #1E293B;
+    --color-text-muted: #64748B;
+    --color-border: #E2E8F0;
+    --color-success: #10B981;
+    --color-error: #EF4444;
+    --color-warning: #F59E0B;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-body), 'Open Sans', system-ui, -apple-system, sans-serif;
+    color: var(--color-text);
+    background: var(--color-background);
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), 'Poppins', system-ui, -apple-system, sans-serif;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--color-text);
+  }
+
+  /* Better focus styles for accessibility - Soft UI Evolution */
+  *:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Soft UI Evolution - Modern shadows and effects */
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-slate-200;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-md hover:-translate-y-0.5;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-blue-600 text-white rounded-lg font-medium;
+    @apply hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+    @apply transition-all duration-200 cursor-pointer;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .input-field {
+    @apply w-full px-3 py-2 border border-slate-300 rounded-md;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+    @apply transition-colors duration-200 text-slate-900;
+    background: white;
+  }
+
+  .input-field:focus {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-heading), 'Poppins', system-ui, sans-serif;
+  }
+
+  .font-body {
+    font-family: var(--font-body), 'Open Sans', system-ui, sans-serif;
+  }
+}
