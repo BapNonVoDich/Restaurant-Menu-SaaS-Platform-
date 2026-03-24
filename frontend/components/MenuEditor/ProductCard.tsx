@@ -104,8 +104,9 @@ export default function ProductCard({
     const style = mergedStyle
     const styleObj: React.CSSProperties = {}
     
-    // Colors
+    // Colors — default transparent card to match public menu over background image
     if (style.backgroundColor) styleObj.backgroundColor = style.backgroundColor
+    else styleObj.backgroundColor = 'transparent'
     if (style.textColor) styleObj.color = style.textColor
     
     // Typography
@@ -201,10 +202,10 @@ export default function ProductCard({
       }}
       {...attributes}
       {...listeners}
-      className={`border-2 rounded-lg cursor-pointer transition-all relative ${
+      className={`border-2 rounded-lg cursor-pointer transition-all relative bg-transparent ${
         isSelected
           ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg'
-          : 'border-gray-200 hover:border-gray-300'
+          : 'border-gray-200/70 hover:border-gray-300'
       } ${isDragging ? 'cursor-grabbing shadow-2xl' : 'cursor-move'} ${
         !product.isAvailable ? 'opacity-60' : ''
       }`}

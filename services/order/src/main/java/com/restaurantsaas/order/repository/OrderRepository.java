@@ -11,4 +11,11 @@ import java.util.UUID;
 public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByStoreIdOrderByCreatedAtDesc(UUID storeId);
     List<Order> findByStoreIdAndStatusOrderByCreatedAtDesc(UUID storeId, Order.OrderStatus status);
+
+    List<Order> findByStoreIdAndTableLabelOrderByCreatedAtDesc(UUID storeId, String tableLabel);
+
+    List<Order> findByStoreIdAndStatusAndTableLabelOrderByCreatedAtDesc(
+            UUID storeId, Order.OrderStatus status, String tableLabel);
+
+    long countByStoreIdAndStatus(UUID storeId, Order.OrderStatus status);
 }

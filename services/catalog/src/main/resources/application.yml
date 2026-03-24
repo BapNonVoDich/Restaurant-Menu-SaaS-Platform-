@@ -30,13 +30,20 @@ spring:
 
 # JWT Configuration (must match Identity service)
 jwt:
-  secret: restaurant-saas-secret-key-change-in-production-minimum-256-bits
+  secret: ${JWT_SECRET:restaurant-saas-secret-key-change-in-production-minimum-256-bits}
 
 # Cloudinary Configuration (for image uploads)
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}
   api-key: ${CLOUDINARY_API_KEY:}
   api-secret: ${CLOUDINARY_API_SECRET:}
+
+services:
+  identity-url: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+
+# Khóa dùng cho payment-service khi PUT /stores/internal/subscription-active/...
+internal:
+  subscription-key: ${INTERNAL_SUBSCRIPTION_KEY:}
 
 logging:
   level:

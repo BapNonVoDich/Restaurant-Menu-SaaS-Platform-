@@ -240,6 +240,9 @@ export interface SectionStyle {
   zIndex?: string
 }
 
+/** Đọc chữ trên ảnh nền busy — lưu trong store.menuData.customization (backend merge vào menu API). */
+export type ReadabilityMode = 'none' | 'soft_scrim' | 'glass_card'
+
 export interface CustomizationSettings {
   globalFontFamily: string
   globalTextColor: string
@@ -248,6 +251,9 @@ export interface CustomizationSettings {
   theme: 'light' | 'dark' | 'custom'
   primaryColor: string
   secondaryColor: string
+  /** 0–1, độ đậm lớp phủ (soft_scrim) hoặc độ “kính” (glass_card). Mặc định ~0.45 */
+  readabilityStrength?: number
+  readabilityMode?: ReadabilityMode
   // Global settings for product cards
   globalProductCardStyle?: ProductStyle
   // Global settings for categories

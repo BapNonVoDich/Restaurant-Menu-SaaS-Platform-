@@ -1,13 +1,15 @@
 package com.restaurantsaas.gateway.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Mono;
 
+/**
+ * Rate limiter configuration for API Gateway.
+ * Limits requests to 10 requests/second per IP address with burst capacity of 20.
+ */
 @Configuration
-@ConditionalOnProperty(name = "spring.cloud.gateway.filter.request-rate-limiter.enabled", havingValue = "true", matchIfMissing = false)
 public class RateLimiterConfig {
 
     @Bean

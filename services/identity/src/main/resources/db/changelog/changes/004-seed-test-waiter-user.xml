@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="004-seed-test-waiter-user" author="restaurant-saas">
+        <sql>
+            INSERT INTO users (id, username, password, email, is_active, created_at, updated_at)
+            VALUES (
+                '00000000-0000-0000-0000-000000000002',
+                'testwaiter',
+                crypt('Test1234!', gen_salt('bf')),
+                'testwaiter@example.com',
+                TRUE,
+                CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP
+            );
+
+            INSERT INTO user_roles (user_id, role_id)
+            SELECT
+                '00000000-0000-0000-0000-000000000002',
+                r.id
+            FROM roles r
+            WHERE r.name = 'WAITER';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

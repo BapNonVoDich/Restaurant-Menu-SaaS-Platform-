@@ -8,9 +8,11 @@ interface ToolbarProps {
   onPreview: () => void
   onPublishedSite: () => void
   onTemplates: () => void
+  onUploadFile: () => void
   canUndo: boolean
   canRedo: boolean
   saving: boolean
+  menuMode: 'editor' | 'file'
 }
 
 export default function Toolbar({
@@ -21,9 +23,11 @@ export default function Toolbar({
   onPreview,
   onPublishedSite,
   onTemplates,
+  onUploadFile,
   canUndo,
   canRedo,
-  saving
+  saving,
+  menuMode
 }: ToolbarProps) {
   return (
     <div className="bg-white border-b shadow-sm px-6 py-3 flex items-center justify-between">
@@ -75,6 +79,18 @@ export default function Toolbar({
           className="px-4 py-1.5 text-sm bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition"
         >
           📋 Mẫu
+        </button>
+
+        {/* Upload File */}
+        <button
+          onClick={onUploadFile}
+          className={`px-4 py-1.5 text-sm rounded-md transition ${
+            menuMode === 'file'
+              ? 'bg-orange-600 text-white hover:bg-orange-700'
+              : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+          }`}
+        >
+          📎 Upload File
         </button>
 
         <div className="w-px h-6 bg-gray-300 mx-2" />

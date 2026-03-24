@@ -19,7 +19,7 @@ export default function RegisterPage() {
     e.preventDefault()
     
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+      setError('Mật khẩu không khớp')
       return
     }
 
@@ -45,6 +45,12 @@ export default function RegisterPage() {
         // Store will be auto-created when dashboard loads
         const data = await response.json()
         localStorage.setItem('token', data.token)
+        localStorage.setItem('auth_user', JSON.stringify({
+          userId: data.userId,
+          username: data.username,
+          email: data.email,
+          roles: data.roles || [],
+        }))
         router.push('/dashboard')
       } else {
         // Handle error - try to get error message from response
@@ -59,14 +65,14 @@ export default function RegisterPage() {
             .map(([field, message]) => `${field}: ${message}`)
             .join('\n')
         } else {
-          errorMessage = 'Registration failed. Please check your input.'
+          errorMessage = 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.'
         }
         
         setError(errorMessage)
       }
     } catch (error) {
       console.error('Registration error:', error)
-      setError('Network error. Please try again.')
+      setError('Lỗi kết nối. Vui lòng thử lại.')
     } finally {
       setLoading(false)
     }
@@ -77,17 +83,17 @@ export default function RegisterPage() {
       <div className="w-full max-w-md space-y-8 card shadow-soft-lg p-8 sm:p-10">
         <div>
           <h2 className="font-heading mt-6 text-center text-3xl font-bold text-text">
-            Create your account
+            Tạo tài khoản của bạn
           </h2>
           <p className="mt-2 text-center text-sm text-text-muted">
-            Get started with your restaurant management platform
+            Bắt đầu với nền tảng quản lý nhà hàng của bạn
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit} method="post" action="#">
           <div className="space-y-4">
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-text mb-1">
-                Username
+                Tên đăng nhập
               </label>
               <input
                 id="username"
@@ -117,7 +123,7 @@ export default function RegisterPage() {
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-text mb-1">
-                Password
+                Mật khẩu
               </label>
               <input
                 id="password"
@@ -132,7 +138,7 @@ export default function RegisterPage() {
             </div>
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-text mb-1">
-                Confirm Password
+                Xác nhận mật khẩu
               </label>
               <input
                 id="confirmPassword"
@@ -161,16 +167,19 @@ export default function RegisterPage() {
               disabled={loading}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
             </button>
           </div>
 
-          <div className="text-center">
+          <div className="text-center space-y-2">
             <Link
               href="/auth/login"
-              className="text-sm text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 rounded transition-colors duration-200 cursor-pointer"
+              className="block text-sm text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 rounded transition-colors duration-200 cursor-pointer"
             >
-              Already have an account? Sign in
+              Bạn đã có tài khoản? Đăng nhập
+            </Link>
+            <Link href="/auth/register-staff" className="block text-sm text-amber-700 hover:text-amber-800">
+              Bạn là nhân viên? Đăng ký tài khoản WAITER
             </Link>
           </div>
         </form>

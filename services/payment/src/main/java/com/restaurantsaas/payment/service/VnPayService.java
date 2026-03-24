@@ -29,20 +29,26 @@ public class VnPayService {
     @Value("${vnpay.return-url}")
     private String returnUrl;
 
-    public String createPaymentUrl(String transactionRef, Long amount, String orderInfo) {
+    @Value("${vnpay.ipn-url:}")
+    private String ipnUrl;
+
+    public String createPaymentUrl(String transactionRef, Long amountVnd, String orderInfo, String clientIp) {
         Map<String, String> vnpParams = new TreeMap<>();
         vnpParams.put("vnp_Version", "2.1.0");
         vnpParams.put("vnp_Command", "pay");
         vnpParams.put("vnp_TmnCode", tmnCode);
-        vnpParams.put("vnp_Amount", String.valueOf(amount * 100)); // Convert to cents
+        vnpParams.put("vnp_Amount", String.valueOf(amountVnd * 100)); // VNPay: đơn vị x100
         vnpParams.put("vnp_CurrCode", "VND");
         vnpParams.put("vnp_TxnRef", transactionRef);
         vnpParams.put("vnp_OrderInfo", orderInfo);
         vnpParams.put("vnp_OrderType", "other");
         vnpParams.put("vnp_Locale", "vn");
         vnpParams.put("vnp_ReturnUrl", returnUrl);
-        vnpParams.put("vnp_IpAddr", "127.0.0.1");
+        vnpParams.put("vnp_IpAddr", (clientIp != null && !clientIp.isBlank()) ? clientIp : "127.0.0.1");
         vnpParams.put("vnp_CreateDate", new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+        if (ipnUrl != null && !ipnUrl.isBlank()) {
+            vnpParams.put("vnp_IpnUrl", ipnUrl);
+        }
 
         // Build query string
         StringBuilder queryString = new StringBuilder();
@@ -72,23 +78,28 @@ public class VnPayService {
         return vnpUrl + "?" + queryString.toString();
     }
 
+    /**
+     * Xác thực chữ ký VNPay — không sửa map gốc (IPN/callback có thể tái sử dụng).
+     */
     public boolean verifyPaymentCallback(Map<String, String> params) {
-        String vnpSecureHash = params.remove("vnp_SecureHash");
-        
-        StringBuilder queryString = new StringBuilder();
-        params.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> {
-                    if (!entry.getValue().isEmpty()) {
-                        queryString.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
-                    }
-                });
-        if (queryString.length() > 0) {
-            queryString.setLength(queryString.length() - 1);
+        Map<String, String> fields = new TreeMap<>(params);
+        String vnpSecureHash = fields.remove("vnp_SecureHash");
+        if (vnpSecureHash == null || vnpSecureHash.isEmpty()) {
+            return false;
         }
-
-        String computedHash = hmacSHA512(hashSecret, queryString.toString());
-        return computedHash.equals(vnpSecureHash);
+        StringBuilder hashData = new StringBuilder();
+        for (Map.Entry<String, String> e : fields.entrySet()) {
+            String k = e.getKey();
+            String v = e.getValue();
+            if (k != null && v != null && !v.isEmpty()) {
+                hashData.append(k).append("=").append(v).append("&");
+            }
+        }
+        if (!hashData.isEmpty()) {
+            hashData.setLength(hashData.length() - 1);
+        }
+        String computedHash = hmacSHA512(hashSecret, hashData.toString());
+        return computedHash.equalsIgnoreCase(vnpSecureHash);
     }
 
     private String hmacSHA512(String key, String data) {

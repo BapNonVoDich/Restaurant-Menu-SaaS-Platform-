@@ -34,12 +34,12 @@ export default function CreateStorePage() {
         router.push('/setup/subscription')
       } else {
         const errorData = await response.json().catch(() => ({}))
-        const errorMessage = errorData.error || errorData.message || 'Failed to create store'
+        const errorMessage = errorData.error || errorData.message || 'Tạo cửa hàng thất bại'
         setError(errorMessage)
       }
     } catch (error) {
       console.error('Error creating store:', error)
-      setError('Network error. Please try again.')
+      setError('Lỗi kết nối. Vui lòng thử lại.')
     } finally {
       setLoading(false)
     }
@@ -50,17 +50,17 @@ export default function CreateStorePage() {
       <div className="w-full max-w-md space-y-8 card shadow-soft-lg p-8 sm:p-10">
         <div>
           <h2 className="font-heading mt-6 text-center text-3xl font-bold text-text">
-            Create Your Store
+            Tạo cửa hàng của bạn
           </h2>
           <p className="mt-2 text-center text-sm text-text-muted">
-            Set up your restaurant profile to get started
+            Thiết lập hồ sơ nhà hàng để bắt đầu
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit} method="post" action="#">
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-text mb-1">
-                Store Name
+                Tên cửa hàng
               </label>
               <input
                 id="name"
@@ -75,7 +75,7 @@ export default function CreateStorePage() {
             </div>
             <div>
               <label htmlFor="slug" className="block text-sm font-medium text-text mb-1">
-                URL Slug
+                Đường dẫn (slug)
               </label>
               <input
                 id="slug"
@@ -83,16 +83,16 @@ export default function CreateStorePage() {
                 type="text"
                 required
                 pattern="[a-z0-9-]+"
-                placeholder="e.g., pizza-hanoi"
+                placeholder="Ví dụ: pizza-hanoi"
                 className="input-field"
                 value={formData.slug}
                 onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase() })}
               />
-              <p className="mt-1 text-xs text-text-muted">Only lowercase letters, numbers, and hyphens</p>
+              <p className="mt-1 text-xs text-text-muted">Chỉ dùng chữ thường, số và dấu gạch nối</p>
             </div>
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-text mb-1">
-                Description (Optional)
+                Mô tả (tuỳ chọn)
               </label>
               <textarea
                 id="description"
@@ -119,7 +119,7 @@ export default function CreateStorePage() {
               disabled={loading}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating...' : 'Create Store'}
+              {loading ? 'Đang tạo...' : 'Tạo cửa hàng'}
             </button>
           </div>
         </form>

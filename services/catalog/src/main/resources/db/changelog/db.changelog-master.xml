@@ -9,5 +9,14 @@
     <include file="db/changelog/changes/002-add-trial-period-and-many-to-many.xml"/>
     <include file="db/changelog/changes/003-add-menu-html-field.xml"/>
     <include file="db/changelog/changes/003-create-menu-templates-table.xml"/>
+    <include file="db/changelog/changes/004-add-menu-data-field.xml"/>
+    <include file="db/changelog/changes/005-add-menu-file-url-field.xml"/>
+    <include file="db/changelog/changes/006-add-style-json-and-menu-template-key.xml"/>
+    <include file="db/changelog/changes/010-add-store-table-domain.xml"/>
+
+    <!-- Dev seed -->
+    <include file="db/changelog/changes/007-seed-test-store-and-menu.xml"/>
+    <include file="db/changelog/changes/008-create-store-staff-table.xml"/>
+    <include file="db/changelog/changes/009-seed-test-store-waiter.xml"/>
 
 </databaseChangeLog>

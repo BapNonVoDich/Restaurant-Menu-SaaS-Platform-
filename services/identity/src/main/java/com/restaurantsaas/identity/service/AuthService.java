@@ -4,6 +4,8 @@ import com.restaurantsaas.identity.dto.AuthResponse;
 import com.restaurantsaas.identity.dto.LoginRequest;
 import com.restaurantsaas.identity.dto.RegisterRequest;
 import com.restaurantsaas.identity.entity.User;
+import com.restaurantsaas.identity.exception.InvalidCredentialsException;
+import com.restaurantsaas.identity.exception.UserDisabledException;
 import com.restaurantsaas.identity.repository.UserRepository;
 import com.restaurantsaas.identity.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -38,16 +40,32 @@ public class AuthService {
                 .build();
     }
 
+    @Transactional
+    public AuthResponse registerWaiter(RegisterRequest request) {
+        User user = userService.registerWaiter(request);
+        String token = jwtUtil.generateToken(user.getUsername(), user.getId());
+
+        return AuthResponse.builder()
+                .token(token)
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .roles(user.getRoles().stream()
+                        .map(role -> role.getName())
+                        .collect(Collectors.toSet()))
+                .build();
+    }
+
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid username or password");
+            throw new InvalidCredentialsException("Invalid username or password");
         }
 
         if (!user.getIsActive()) {
-            throw new RuntimeException("User account is disabled");
+            throw new UserDisabledException("User account is disabled");
         }
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getId());

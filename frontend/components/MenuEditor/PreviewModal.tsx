@@ -88,7 +88,7 @@ export default function PreviewModal({
               style={{
                 minHeight: mode === 'mobile' ? '667px' : '800px'
               }}
-              title="Menu Preview"
+              title="Xem trước menu"
             />
           </div>
         </div>

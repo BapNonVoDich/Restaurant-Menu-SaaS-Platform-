@@ -1,9 +1,12 @@
 'use client'
 
+import Image from 'next/image'
 import { useState } from 'react'
 import { CategoryItem, ProductItem, CustomElement, CustomizationSettings } from '@/lib/menuEditor/types'
 import { HexColorPicker } from 'react-colorful'
 import AdvancedStyleEditor from './AdvancedStyleEditor'
+import CloudinaryUpload from '../CloudinaryUpload'
+import { StyleNumberStepper, StyleToggleGroup } from '@/components/style/StyleControls'
 
 interface SidebarPanelProps {
   selectedCategory: CategoryItem | null
@@ -33,6 +36,7 @@ export default function SidebarPanel({
   onClose
 }: SidebarPanelProps) {
   const [activeTab, setActiveTab] = useState<'item' | 'customization'>('item')
+  const [editMode, setEditMode] = useState<'basic' | 'advanced'>('basic')
 
   // Always show panel, even when nothing is selected
 
@@ -72,6 +76,17 @@ export default function SidebarPanel({
             🎨 Toàn cục
           </button>
         </div>
+        <div className="mt-2">
+          <StyleToggleGroup
+            label="Chế độ chỉnh sửa"
+            value={editMode}
+            options={[
+              { value: 'basic', label: 'Cơ bản' },
+              { value: 'advanced', label: 'Nâng cao' },
+            ]}
+            onChange={setEditMode}
+          />
+        </div>
       </div>
 
       {/* Content */}
@@ -89,13 +104,15 @@ export default function SidebarPanel({
                   category={selectedCategory}
                   onUpdate={onUpdateCategory}
                 />
-                <div className="border-t pt-4">
-                  <AdvancedStyleEditor
-                    style={selectedCategory.style}
-                    onUpdate={(updates) => onUpdateCategory({ style: { ...selectedCategory.style, ...updates } })}
-                    title="Tùy chỉnh CSS nâng cao"
-                  />
-                </div>
+                {editMode === 'advanced' ? (
+                  <div className="border-t pt-4">
+                    <AdvancedStyleEditor
+                      style={selectedCategory.style}
+                      onUpdate={(updates) => onUpdateCategory({ style: { ...selectedCategory.style, ...updates } })}
+                      title="Tùy chỉnh CSS nâng cao"
+                    />
+                  </div>
+                ) : null}
               </div>
             )}
             {selectedProduct && (
@@ -104,13 +121,15 @@ export default function SidebarPanel({
                   product={selectedProduct}
                   onUpdate={onUpdateProduct}
                 />
-                <div className="border-t pt-4">
-                  <AdvancedStyleEditor
-                    style={selectedProduct.style}
-                    onUpdate={(updates) => onUpdateProduct({ style: { ...selectedProduct.style, ...updates } })}
-                    title="Tùy chỉnh CSS nâng cao"
-                  />
-                </div>
+                {editMode === 'advanced' ? (
+                  <div className="border-t pt-4">
+                    <AdvancedStyleEditor
+                      style={selectedProduct.style}
+                      onUpdate={(updates) => onUpdateProduct({ style: { ...selectedProduct.style, ...updates } })}
+                      title="Tùy chỉnh CSS nâng cao"
+                    />
+                  </div>
+                ) : null}
               </div>
             )}
             {selectedSection && (
@@ -119,13 +138,15 @@ export default function SidebarPanel({
                   section={selectedSection}
                   onUpdate={onUpdateSection}
                 />
-                <div className="border-t pt-4">
-                  <AdvancedStyleEditor
-                    style={selectedSection.style}
-                    onUpdate={(updates) => onUpdateSection({ style: { ...selectedSection.style, ...updates } })}
-                    title="Tùy chỉnh CSS nâng cao"
-                  />
-                </div>
+                {editMode === 'advanced' ? (
+                  <div className="border-t pt-4">
+                    <AdvancedStyleEditor
+                      style={selectedSection.style}
+                      onUpdate={(updates) => onUpdateSection({ style: { ...selectedSection.style, ...updates } })}
+                      title="Tùy chỉnh CSS nâng cao"
+                    />
+                  </div>
+                ) : null}
               </div>
             )}
             {selectedCustomElement && (
@@ -134,13 +155,15 @@ export default function SidebarPanel({
                   element={selectedCustomElement}
                   onUpdate={onUpdateCustomElement}
                 />
-                <div className="border-t pt-4">
-                  <AdvancedStyleEditor
-                    style={selectedCustomElement.style}
-                    onUpdate={(updates) => onUpdateCustomElement({ style: { ...selectedCustomElement.style, ...updates } })}
-                    title="Tùy chỉnh CSS nâng cao"
-                  />
-                </div>
+                {editMode === 'advanced' ? (
+                  <div className="border-t pt-4">
+                    <AdvancedStyleEditor
+                      style={selectedCustomElement.style}
+                      onUpdate={(updates) => onUpdateCustomElement({ style: { ...selectedCustomElement.style, ...updates } })}
+                      title="Tùy chỉnh CSS nâng cao"
+                    />
+                  </div>
+                ) : null}
               </div>
             )}
           </>
@@ -185,21 +208,17 @@ function CategoryEditor({
       </div>
 
       {category.style.layout === 'grid' && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Số cột
-          </label>
-          <input
-            type="number"
-            min="1"
-            max="6"
-            value={category.style.columns || 3}
-            onChange={(e) => onUpdate({
-              style: { ...category.style, columns: parseInt(e.target.value) || 3 }
-            })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-        </div>
+        <StyleNumberStepper
+          label="Số cột"
+          value={category.style.columns || 3}
+          min={1}
+          max={6}
+          onChange={(n) =>
+            onUpdate({
+              style: { ...category.style, columns: n },
+            })
+          }
+        />
       )}
 
       <div className="text-xs text-gray-500 mb-2">
@@ -236,20 +255,14 @@ function ProductEditor({
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Giá (đ)
-          </label>
-          <input
-            type="number"
-            value={product.price}
-            onChange={(e) => onUpdate({ price: parseFloat(e.target.value) || 0 })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="0"
-            min="0"
-            step="1000"
-          />
-        </div>
+        <StyleNumberStepper
+          label="Giá (đ)"
+          value={Math.max(0, Number(product.price) || 0)}
+          min={0}
+          step={1000}
+          onChange={(n) => onUpdate({ price: n })}
+          suffix="VNĐ"
+        />
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -266,24 +279,29 @@ function ProductEditor({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            URL hình ảnh
+            Hình ảnh sản phẩm
           </label>
-          <input
-            type="url"
-            value={product.imageUrl || ''}
-            onChange={(e) => onUpdate({ imageUrl: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="https://example.com/image.jpg"
+          <CloudinaryUpload
+            onUploadComplete={(url) => onUpdate({ imageUrl: url })}
+            folder="product-images"
+            buttonText="Upload ảnh"
+            currentImageUrl={product.imageUrl}
+            className="mb-2"
           />
           {product.imageUrl && (
-            <img 
-              src={product.imageUrl} 
-              alt={product.name}
-              className="mt-2 max-w-full h-32 object-cover rounded"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none'
-              }}
-            />
+            <div className="relative mt-2 h-32 w-full max-w-md rounded border overflow-hidden">
+              <Image
+                src={product.imageUrl}
+                alt={product.name}
+                fill
+                className="object-cover"
+                sizes="448px"
+                unoptimized
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none'
+                }}
+              />
+            </div>
           )}
         </div>
 
@@ -450,15 +468,30 @@ function CustomElementEditor({
       {element.type === 'image' && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            URL hình ảnh
+            Hình ảnh
           </label>
-          <input
-            type="url"
-            value={element.content}
-            onChange={(e) => onUpdate({ content: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="https://example.com/image.jpg"
+          <CloudinaryUpload
+            onUploadComplete={(url) => onUpdate({ content: url })}
+            folder="menu-images"
+            buttonText="Upload ảnh"
+            currentImageUrl={element.content || undefined}
+            className="mb-2"
           />
+          {element.content && (
+            <div className="relative mt-2 h-32 w-full max-w-md rounded border overflow-hidden">
+              <Image
+                src={element.content}
+                alt="Custom"
+                fill
+                className="object-cover"
+                sizes="448px"
+                unoptimized
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none'
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 

@@ -6,10 +6,12 @@ export function generateMenuHTML(
   categories: CategoryItem[],
   customElements: CustomElement[],
   customization: CustomizationSettings,
-  storeName: string
+  storeName: string,
+  backgroundImageUrl?: string,
+  enableOrdering?: boolean
 ): string {
-  const css = generateCSS(customization)
-  const html = generateHTML(categories, customElements, storeName, customization)
+  const css = generateCSS(customization, backgroundImageUrl, 'body')
+  const html = generateHTML(categories, customElements, storeName, customization, !!enableOrdering)
   
   return `<!DOCTYPE html>
 <html lang="vi">
@@ -25,21 +27,146 @@ export function generateMenuHTML(
 </html>`
 }
 
-function generateCSS(customization: CustomizationSettings): string {
+/**
+ * Style + markup fragment for Next.js `dangerouslySetInnerHTML` (no full document).
+ * Parent page should apply `background-image` on a full-viewport wrapper — this root stays transparent
+ * so the photo fills the screen instead of a white card.
+ */
+export function generateMenuInlineFragment(
+  categories: CategoryItem[],
+  customElements: CustomElement[],
+  customization: CustomizationSettings,
+  storeName: string,
+  enableOrdering?: boolean
+): string {
+  const css = generateCSS(customization, undefined, 'embed-root')
+  const html = generateHTML(categories, customElements, storeName, customization, !!enableOrdering)
+  return `<style>${css}</style><div class="menu-embed-root">${html}</div>`
+}
+
+type MenuCssRoot = 'body' | 'embed-root'
+
+function generateCSS(
+  customization: CustomizationSettings,
+  backgroundImageUrl: string | undefined,
+  root: MenuCssRoot
+): string {
+  const safeBackgroundUrl = backgroundImageUrl
+    ? backgroundImageUrl.replaceAll("'", "%27").replaceAll('"', '%22')
+    : null
+
+  const isEmbed = root === 'embed-root'
+  const rootSel = isEmbed ? '.menu-embed-root' : 'body'
+
+  const resetSelector = isEmbed ? '.menu-embed-root, .menu-embed-root *' : '*'
+
+  const bgLayer =
+    !isEmbed && safeBackgroundUrl
+      ? `
+      background-color: transparent;
+      background-image: url("${safeBackgroundUrl}");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      `
+      : !isEmbed
+        ? `
+      background-color: ${customization.globalBackgroundColor || '#ffffff'};
+      `
+        : `
+      background-color: transparent;
+      background-image: none;
+      `
+
+  const rawRead = (customization as { readabilityMode?: string }).readabilityMode
+  const readabilityMode =
+    rawRead === 'soft_scrim' || rawRead === 'glass_card' ? rawRead : 'none'
+  const strengthRaw = customization.readabilityStrength
+  const strength =
+    typeof strengthRaw === 'number' && !Number.isNaN(strengthRaw)
+      ? Math.min(1, Math.max(0, strengthRaw))
+      : 0.45
+
+  const textLegibility =
+    isEmbed && readabilityMode === 'none'
+      ? `
+    .menu-embed-root h1,
+    .menu-embed-root .category-header,
+    .menu-embed-root .product-name,
+    .menu-embed-root .product-price {
+      text-shadow:
+        0 0 6px rgba(255, 255, 255, 0.95),
+        0 1px 3px rgba(0, 0, 0, 0.45);
+    }
+    .menu-embed-root .product-description {
+      text-shadow: 0 0 4px rgba(255, 255, 255, 0.9), 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+    `
+      : ''
+
+  const readabilityScrimCss =
+    readabilityMode === 'soft_scrim'
+      ? `
+    ${rootSel}::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, ${strength.toFixed(3)});
+      pointer-events: none;
+      z-index: 0;
+    }
+    ${rootSel} > .menu-container {
+      position: relative;
+      z-index: 1;
+    }
+  `
+      : ''
+
+  const readabilityGlassCss =
+    readabilityMode === 'glass_card'
+      ? `
+    ${rootSel} > .menu-container {
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, ${(0.12 + strength * 0.22).toFixed(3)});
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: 20px;
+      padding: calc(${customization.globalSpacing || '20px'} + 10px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, ${(0.14 + strength * 0.18).toFixed(3)});
+    }
+    .product-card {
+      background: rgba(255, 255, 255, ${(0.14 + strength * 0.22).toFixed(3)}) !important;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 12px !important;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1) !important;
+    }
+  `
+      : ''
+
+  const primary = customization.primaryColor || '#3b82f6'
+
   return `
-    * {
+    ${resetSelector} {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
     
-    body {
+    ${rootSel} {
       font-family: ${customization.globalFontFamily || 'system-ui, -apple-system, sans-serif'};
       color: ${customization.globalTextColor || '#1f2937'};
-      background-color: ${customization.globalBackgroundColor || '#ffffff'};
+      ${bgLayer}
       line-height: 1.6;
       padding: ${customization.globalSpacing || '20px'};
+      position: relative;
     }
+    
+    ${readabilityScrimCss}
+    ${readabilityGlassCss}
+    ${textLegibility}
     
     .menu-container {
       max-width: 1200px;
@@ -48,6 +175,7 @@ function generateCSS(customization: CustomizationSettings): string {
     
     .category-section {
       margin-bottom: 40px;
+      background: transparent;
     }
     
     .category-header {
@@ -56,6 +184,7 @@ function generateCSS(customization: CustomizationSettings): string {
       margin-bottom: 20px;
       padding-bottom: 10px;
       border-bottom: 2px solid ${customization.primaryColor || '#3b82f6'};
+      background: transparent;
     }
     
     .products-grid {
@@ -63,18 +192,24 @@ function generateCSS(customization: CustomizationSettings): string {
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 20px;
     }
+
+    .products-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
     
+    /* Default: let body/menu background show through; use inline styles from product.style for card chrome */
     .product-card {
-      background: white;
+      background: transparent;
       border-radius: 8px;
       padding: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: none;
       transition: transform 0.2s, box-shadow 0.2s;
     }
     
     .product-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      transform: translateY(-1px);
     }
     
     .product-image {
@@ -111,13 +246,15 @@ function generateCSS(customization: CustomizationSettings): string {
       margin: 30px 0;
       padding: 20px;
       border-radius: 8px;
+      background: transparent;
     }
     
+    /* Default banner: text only over menu background; set background via element.style in editor */
     .custom-banner {
-      background: linear-gradient(135deg, ${customization.primaryColor || '#3b82f6'} 0%, ${customization.secondaryColor || '#8b5cf6'} 100%);
-      color: white;
+      background: transparent;
+      color: inherit;
       text-align: center;
-      padding: 40px 20px;
+      padding: 24px 16px;
       border-radius: 12px;
     }
     
@@ -141,9 +278,37 @@ function generateCSS(customization: CustomizationSettings): string {
         font-size: 1.5rem;
       }
       
-      body {
+      ${rootSel} {
         padding: 10px;
       }
+    }
+
+    /* Ghost button: chỉ viền + chữ — nền ảnh lộ ra */
+    .menu-order-btn {
+      margin-top: 12px;
+      width: 100%;
+      max-width: 320px;
+      padding: 10px 12px;
+      border: 2px solid ${primary};
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+      color: ${primary};
+      font-weight: 700;
+      transition: transform 0.1s ease, background-color 0.15s ease, color 0.15s ease;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+    }
+    
+    .menu-order-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .menu-order-btn[disabled] {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      background: transparent;
     }
   `
 }
@@ -152,7 +317,8 @@ function generateHTML(
   categories: CategoryItem[],
   customElements: CustomElement[],
   storeName: string,
-  customization: CustomizationSettings
+  customization: CustomizationSettings,
+  enableOrdering: boolean
 ): string {
   let html = `<div class="menu-container">
     <h1 style="text-align: center; margin-bottom: 40px; font-size: 2.5rem;">${storeName}</h1>
@@ -166,7 +332,7 @@ function generateHTML(
   
   for (const item of allItems) {
     if (item.type === 'category') {
-      html += generateCategoryHTML(item.data as CategoryItem, customization)
+      html += generateCategoryHTML(item.data as CategoryItem, customization, enableOrdering)
     } else {
       html += generateCustomElementHTML(item.data as CustomElement, customization)
     }
@@ -243,7 +409,11 @@ function buildInlineStylesFromObject(style: any): string {
   return styles.join('; ')
 }
 
-function generateCategoryHTML(category: CategoryItem, customization: CustomizationSettings): string {
+function generateCategoryHTML(
+  category: CategoryItem,
+  customization: CustomizationSettings,
+  enableOrdering: boolean
+): string {
   const style = category.style
   const sectionStyles = buildInlineStylesFromObject(style)
   const headerStyles = buildInlineStylesFromObject({
@@ -254,7 +424,7 @@ function generateCategoryHTML(category: CategoryItem, customization: Customizati
     textAlign: style.textAlign
   })
   
-  let html = `<section class="category-section"${sectionStyles ? ` style="${sectionStyles}"` : ''}>
+  let html = `<section class="category-section" data-category-id="${escapeHtmlAttr(String(category.id))}"${sectionStyles ? ` style="${sectionStyles}"` : ''}>
     <h2 class="category-header"${headerStyles ? ` style="${headerStyles}"` : ''}>${category.name}</h2>
   `
   
@@ -267,7 +437,7 @@ function generateCategoryHTML(category: CategoryItem, customization: Customizati
   const sortedProducts = [...category.products].sort((a, b) => a.sortOrder - b.sortOrder)
   for (const product of sortedProducts) {
     if (product.categoryIds.includes(category.id)) {
-      html += generateProductHTML(product, customization)
+      html += generateProductHTML(product, customization, enableOrdering)
     }
   }
   
@@ -285,16 +455,21 @@ function generateCategoryHTML(category: CategoryItem, customization: Customizati
   return html
 }
 
-function generateProductHTML(product: ProductItem, customization: CustomizationSettings): string {
+function generateProductHTML(
+  product: ProductItem,
+  customization: CustomizationSettings,
+  enableOrdering: boolean
+): string {
   const style = product.style
   const unavailableClass = product.isAvailable ? '' : 'product-unavailable'
   const cardStyles = buildInlineStylesFromObject(style)
   
-  let html = `<div class="product-card ${unavailableClass}"${cardStyles ? ` style="${cardStyles}"` : ''}>
+  let html = `<div class="product-card ${unavailableClass}" data-product-id="${escapeHtmlAttr(String(product.id))}"${cardStyles ? ` style="${cardStyles}"` : ''}>
   `
   
-  if (style.showImage && product.imageUrl) {
-    html += `<img src="${product.imageUrl}" alt="${product.name}" class="product-image" />`
+  // Show image when URL exists unless style_json explicitly turned off (showImage === false)
+  if (product.imageUrl && style.showImage !== false) {
+    html += `<img src="${escapeHtmlAttr(product.imageUrl)}" alt="${escapeHtmlAttr(product.name)}" class="product-image" />`
   }
   
   const nameStyles = buildInlineStylesFromObject({
@@ -325,9 +500,31 @@ function generateProductHTML(product: ProductItem, customization: CustomizationS
       html += generateCustomElementHTML(child, customization)
     }
   }
+
+  if (enableOrdering) {
+    const safeName = escapeHtmlAttr(product.name)
+    const safeId = escapeHtmlAttr(String(product.id))
+    const safePrice = escapeHtmlAttr(String(product.price))
+    const disabledAttr = product.isAvailable ? '' : ' disabled'
+
+    html += `<button type="button" class="menu-order-btn"${disabledAttr} data-action="order" data-product-id="${safeId}" data-product-name="${safeName}" data-product-price="${safePrice}">Đặt món</button>`
+  }
   
   html += `</div>`
   return html
+}
+
+function escapeHtml(value: any): string {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+function escapeHtmlAttr(value: any): string {
+  return escapeHtml(value)
 }
 
 function generateCustomElementHTML(element: CustomElement, customization: CustomizationSettings): string {

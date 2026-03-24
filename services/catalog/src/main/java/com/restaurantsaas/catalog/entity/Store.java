@@ -49,6 +49,29 @@ public class Store {
     @Column(name = "menu_html", columnDefinition = "TEXT")
     private String menuHtml;
 
+    @Column(name = "menu_data", columnDefinition = "TEXT")
+    private String menuData;
+
+    @Column(name = "menu_file_url", length = 500)
+    private String menuFileUrl;
+
+    @Column(name = "menu_template_key", length = 20)
+    private String menuTemplateKey;
+
+    @Column(name = "table_ordering_enabled", nullable = false)
+    @Builder.Default
+    private Boolean tableOrderingEnabled = false;
+
+    @Column(name = "custom_domain", unique = true, length = 255)
+    private String customDomain;
+
+    @Column(name = "domain_verified", nullable = false)
+    @Builder.Default
+    private Boolean domainVerified = false;
+
+    @Column(name = "domain_verification_token", length = 64)
+    private String domainVerificationToken;
+
     @Column(nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

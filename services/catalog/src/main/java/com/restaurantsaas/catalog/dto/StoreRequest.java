@@ -14,4 +14,7 @@ public class StoreRequest {
     private String slug;
 
     private String description;
+
+    /** Bật nhập mã bàn khi khách đặt món (menu công khai). */
+    private Boolean tableOrderingEnabled;
 }

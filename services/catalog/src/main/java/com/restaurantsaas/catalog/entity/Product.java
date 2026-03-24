@@ -56,6 +56,10 @@ public class Product {
     @Builder.Default
     private Integer sortOrder = 0;
 
+    // JSON string describing how this product card should look on the menu
+    @Column(name = "style_json", columnDefinition = "TEXT")
+    private String styleJson;
+
     @Column(nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

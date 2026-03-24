@@ -1,5 +1,6 @@
 package com.restaurantsaas.catalog.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,7 +34,12 @@ public class Category {
     @Builder.Default
     private Integer sortOrder = 0;
 
+    // JSON string describing how this category card/section should look on the menu
+    @Column(name = "style_json", columnDefinition = "TEXT")
+    private String styleJson;
+
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)
+    @JsonIgnore
     @Builder.Default
     private Set<Product> products = new HashSet<>();
 

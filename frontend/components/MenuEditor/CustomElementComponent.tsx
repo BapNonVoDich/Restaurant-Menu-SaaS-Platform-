@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useSortable } from '@dnd-kit/sortable'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -129,7 +130,17 @@ export default function CustomElementComponent({
     if (style.transform) styleObj.transform = style.transform
     if (style.transition) styleObj.transition = style.transition
     if (style.zIndex) styleObj.zIndex = style.zIndex as any
-    
+
+    const hasBg = !!(style.backgroundColor || style.backgroundImage)
+    const skipTransparentBg =
+      element.type === 'divider' ||
+      element.type === 'image' ||
+      element.type === 'product-image' ||
+      element.type === 'button'
+    if (!hasBg && !skipTransparentBg) {
+      styleObj.backgroundColor = styleObj.backgroundColor || 'transparent'
+    }
+
     return styleObj
   }
 
@@ -146,11 +157,14 @@ export default function CustomElementComponent({
         )
       case 'image':
         return element.content ? (
-          <img 
-            src={element.content} 
-            alt="Custom" 
+          <Image
+            src={element.content}
+            alt="Custom"
+            width={800}
+            height={600}
             style={styleObj}
-            className="max-w-full h-auto"
+            className="max-w-full h-auto w-auto"
+            unoptimized
           />
         ) : null
       case 'button':
@@ -181,11 +195,14 @@ export default function CustomElementComponent({
         )
       case 'product-image':
         return element.content ? (
-          <img 
-            src={element.content} 
-            alt="Product" 
+          <Image
+            src={element.content}
+            alt="Product"
+            width={800}
+            height={600}
             style={styleObj}
-            className="max-w-full h-auto"
+            className="max-w-full h-auto w-auto"
+            unoptimized
           />
         ) : (
           <div style={styleObj} className="min-h-[100px] bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
@@ -213,10 +230,10 @@ export default function CustomElementComponent({
       style={dragStyle}
       {...attributes}
       {...listeners}
-      className={`border-2 rounded-lg p-4 transition-all relative ${
+      className={`border-2 rounded-lg p-4 transition-all relative bg-transparent ${
         isSelected || isMultiSelected || activeDragId === element.id
           ? 'border-blue-500 ring-2 ring-blue-200'
-          : 'border-gray-200 hover:border-gray-300'
+          : 'border-gray-200/70 hover:border-gray-300'
       } ${isDragging ? 'cursor-grabbing shadow-2xl' : 'cursor-move'}`}
       onClick={onSelect}
     >

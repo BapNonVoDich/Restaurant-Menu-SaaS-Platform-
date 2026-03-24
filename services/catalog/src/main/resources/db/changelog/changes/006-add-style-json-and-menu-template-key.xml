@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="006-add-style-json-and-menu-template-key" author="restaurant-saas">
+        <!-- Store per-category card style JSON -->
+        <addColumn tableName="categories">
+            <column name="style_json" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <!-- Store per-product card style JSON -->
+        <addColumn tableName="products">
+            <column name="style_json" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <!-- Store selected template layout key (A/B/C) -->
+        <addColumn tableName="stores">
+            <column name="menu_template_key" type="VARCHAR(20)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
+

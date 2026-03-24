@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
 
 interface Category {
@@ -36,11 +36,7 @@ export default function MenuEditor({ storeId, token, onSave }: MenuEditorProps) 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [editingItem, setEditingItem] = useState<{ type: 'category' | 'product'; id: string } | null>(null)
 
-  useEffect(() => {
-    fetchMenuData()
-  }, [storeId, token])
-
-  const fetchMenuData = async () => {
+  const fetchMenuData = useCallback(async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
       const response = await fetch(`${apiUrl}/catalog/stores/my-store/menu`, {
@@ -67,7 +63,11 @@ export default function MenuEditor({ storeId, token, onSave }: MenuEditorProps) 
     } finally {
       setLoading(false)
     }
-  }
+  }, [token])
+
+  useEffect(() => {
+    fetchMenuData()
+  }, [fetchMenuData])
 
   const handleDragStart = (type: 'category' | 'product', id: string) => {
     setDraggedItem({ type, id })

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Poppins, Open_Sans } from 'next/font/google'
 import './globals.css'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -17,8 +19,8 @@ const openSans = Open_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'Restaurant SaaS Platform',
-  description: 'Digital menu and ordering platform for restaurants',
+  title: 'Nền tảng SaaS nhà hàng',
+  description: 'Nền tảng số hoá menu và đặt món cho nhà hàng',
 }
 
 export default function RootLayout({
@@ -27,9 +29,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <body className={`${poppins.variable} ${openSans.variable} font-body bg-slate-50 antialiased`}>
-        {children}
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   )

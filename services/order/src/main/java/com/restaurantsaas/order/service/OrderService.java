@@ -4,6 +4,8 @@ import com.restaurantsaas.order.dto.OrderRequest;
 import com.restaurantsaas.order.dto.OrderResponse;
 import com.restaurantsaas.order.entity.Order;
 import com.restaurantsaas.order.entity.OrderItem;
+import com.restaurantsaas.order.entity.Bill;
+import com.restaurantsaas.order.repository.BillRepository;
 import com.restaurantsaas.order.repository.OrderItemRepository;
 import com.restaurantsaas.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +24,23 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final BillRepository billRepository;
 
     @Transactional
     public OrderResponse createOrder(UUID storeId, OrderRequest request) {
+        String tableLabel = null;
+        if (request.getTableLabel() != null) {
+            String t = request.getTableLabel().trim();
+            if (!t.isEmpty()) {
+                tableLabel = t.length() > 50 ? t.substring(0, 50) : t;
+            }
+        }
+
         Order order = Order.builder()
                 .storeId(storeId)
                 .customerName(request.getCustomerName())
                 .customerPhone(request.getCustomerPhone())
+                .tableLabel(tableLabel)
                 .status(Order.OrderStatus.PENDING)
                 .paymentStatus(Order.PaymentStatus.PENDING)
                 .totalAmount(BigDecimal.ZERO)
@@ -71,15 +83,33 @@ public class OrderService {
         return mapToResponse(order);
     }
 
-    public List<OrderResponse> getOrdersByStore(UUID storeId) {
-        List<Order> orders = orderRepository.findByStoreIdOrderByCreatedAtDesc(storeId);
+    public List<OrderResponse> getOrdersByStore(UUID storeId, String tableFilter) {
+        List<Order> orders;
+        if (tableFilter != null && !tableFilter.trim().isEmpty()) {
+            String t = tableFilter.trim();
+            if (t.length() > 50) {
+                t = t.substring(0, 50);
+            }
+            orders = orderRepository.findByStoreIdAndTableLabelOrderByCreatedAtDesc(storeId, t);
+        } else {
+            orders = orderRepository.findByStoreIdOrderByCreatedAtDesc(storeId);
+        }
         return orders.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    public List<OrderResponse> getOrdersByStoreAndStatus(UUID storeId, Order.OrderStatus status) {
-        List<Order> orders = orderRepository.findByStoreIdAndStatusOrderByCreatedAtDesc(storeId, status);
+    public List<OrderResponse> getOrdersByStoreAndStatus(UUID storeId, Order.OrderStatus status, String tableFilter) {
+        List<Order> orders;
+        if (tableFilter != null && !tableFilter.trim().isEmpty()) {
+            String t = tableFilter.trim();
+            if (t.length() > 50) {
+                t = t.substring(0, 50);
+            }
+            orders = orderRepository.findByStoreIdAndStatusAndTableLabelOrderByCreatedAtDesc(storeId, status, t);
+        } else {
+            orders = orderRepository.findByStoreIdAndStatusOrderByCreatedAtDesc(storeId, status);
+        }
         return orders.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -89,9 +119,30 @@ public class OrderService {
     public OrderResponse updateOrderStatus(UUID orderId, Order.OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+        validateTransition(order.getStatus(), status);
         order.setStatus(status);
         order = orderRepository.save(order);
+
+        if (status == Order.OrderStatus.DONE || status == Order.OrderStatus.CANCELLED) {
+            billRepository.findByOrderId(orderId).ifPresent(bill -> {
+                if (status == Order.OrderStatus.DONE && bill.getStatus() != Bill.BillStatus.COMPLETED) {
+                    bill.setStatus(Bill.BillStatus.COMPLETED);
+                    bill.setCompletedAt(java.time.LocalDateTime.now());
+                    billRepository.save(bill);
+                } else if (status == Order.OrderStatus.CANCELLED && bill.getStatus() != Bill.BillStatus.CANCELLED) {
+                    bill.setStatus(Bill.BillStatus.CANCELLED);
+                    bill.setCancelledAt(java.time.LocalDateTime.now());
+                    billRepository.save(bill);
+                }
+            });
+        }
+
         return mapToResponse(order);
+    }
+
+    public Order getOrderEntity(UUID orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
     }
 
     @Transactional
@@ -114,6 +165,7 @@ public class OrderService {
                 .storeId(order.getStoreId())
                 .customerName(order.getCustomerName())
                 .customerPhone(order.getCustomerPhone())
+                .tableLabel(order.getTableLabel())
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus())
                 .paymentMethod(order.getPaymentMethod())
@@ -131,5 +183,24 @@ public class OrderService {
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .build();
+    }
+
+    private void validateTransition(Order.OrderStatus current, Order.OrderStatus target) {
+        if (current == target) {
+            return;
+        }
+        if (current == Order.OrderStatus.DONE || current == Order.OrderStatus.CANCELLED) {
+            throw new RuntimeException("Finalized order cannot be updated");
+        }
+        if (current == Order.OrderStatus.PENDING &&
+                target != Order.OrderStatus.CONFIRMED &&
+                target != Order.OrderStatus.CANCELLED) {
+            throw new RuntimeException("Invalid status transition from PENDING");
+        }
+        if (current == Order.OrderStatus.CONFIRMED &&
+                target != Order.OrderStatus.DONE &&
+                target != Order.OrderStatus.CANCELLED) {
+            throw new RuntimeException("Invalid status transition from CONFIRMED");
+        }
     }
 }

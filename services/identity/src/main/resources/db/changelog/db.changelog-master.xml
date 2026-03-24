@@ -11,4 +11,8 @@
     <!-- Master Data -->
     <include file="db/changelog/changes/002-insert-master-data.xml"/>
 
+    <!-- Dev Seeds -->
+    <include file="db/changelog/changes/003-seed-test-user.xml"/>
+    <include file="db/changelog/changes/004-seed-test-waiter-user.xml"/>
+
 </databaseChangeLog>

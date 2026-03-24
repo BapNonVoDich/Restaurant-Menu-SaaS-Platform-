@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!-- Seed a test store + minimal menu data so you can open public menu immediately -->
+    <changeSet id="007-seed-test-store-and-menu" author="restaurant-saas">
+        <sql>
+            -- Fixed UUIDs: must match identity service seed.
+            INSERT INTO stores
+                (id, owner_id, name, slug, description, sub_status, sub_end_date, trial_start_date, trial_end_date,
+                 menu_html, menu_data, menu_file_url, menu_template_key, created_at, updated_at)
+            VALUES
+                ('00000000-0000-0000-0000-000000000011',
+                 '00000000-0000-0000-0000-000000000001',
+                 'Nhà hàng Demo',
+                 'test-restaurant',
+                 '',
+                 'ACTIVE',
+                 NULL, NULL, NULL,
+                 NULL, NULL, NULL,
+                 'A',
+                 CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+            INSERT INTO categories
+                (id, store_id, name, sort_order, style_json, created_at, updated_at)
+            VALUES
+                ('00000000-0000-0000-0000-000000000021',
+                 '00000000-0000-0000-0000-000000000011',
+                 'Đồ ăn nhanh',
+                 0,
+                 NULL,
+                 CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+            INSERT INTO products
+                (id, store_id, name, description, price, image_url, is_available, sort_order, style_json, created_at, updated_at)
+            VALUES
+                ('00000000-0000-0000-0000-000000000031',
+                 '00000000-0000-0000-0000-000000000011',
+                 'Gà rán',
+                 'Crispy gà rán giòn tan',
+                 49000,
+                 NULL,
+                 TRUE,
+                 0,
+                 NULL,
+                 CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+            INSERT INTO product_categories (product_id, category_id)
+            VALUES
+                ('00000000-0000-0000-0000-000000000031',
+                 '00000000-0000-0000-0000-000000000021');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
+

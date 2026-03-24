@@ -33,6 +33,9 @@ public class Order {
     @Column(name = "customer_phone", length = 20)
     private String customerPhone;
 
+    @Column(name = "table_label", length = 50)
+    private String tableLabel;
+
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
@@ -69,9 +72,6 @@ public class Order {
     public enum OrderStatus {
         PENDING,
         CONFIRMED,
-        PREPARING,
-        READY,
-        SERVING,
         DONE,
         CANCELLED
     }

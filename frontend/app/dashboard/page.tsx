@@ -4,12 +4,17 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslation } from '@/hooks/useTranslation'
+import PublicMenuLinkBlock from '@/components/PublicMenuLinkBlock'
 
 export default function DashboardPage() {
   const router = useRouter()
   const t = useTranslation()
   const [loading, setLoading] = useState(true)
   const [store, setStore] = useState<any>(null)
+  const [stats, setStats] = useState<any>(null)
+  const [statsLoading, setStatsLoading] = useState(false)
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
 
   const checkStoreStatus = useCallback(async () => {
     try {
@@ -51,8 +56,36 @@ export default function DashboardPage() {
     checkStoreStatus()
   }, [checkStoreStatus])
 
+  const fetchStats = useCallback(async (storeId: string) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      setStatsLoading(true)
+      const res = await fetch(`${apiUrl}/order/orders/stores/${storeId}/stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setStats(data)
+      }
+    } catch (e) {
+      console.error('Error fetching dashboard stats:', e)
+    } finally {
+      setStatsLoading(false)
+    }
+  }, [apiUrl])
+
+  useEffect(() => {
+    if (store?.id) {
+      fetchStats(store.id)
+    }
+  }, [store, fetchStats])
+
   const handleLogout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('auth_user')
     router.push('/auth/login')
   }
 
@@ -113,20 +146,8 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white shadow-soft border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="font-heading text-2xl font-bold text-text">{t.dashboard.title}</h1>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 text-sm font-medium text-text-muted bg-white border border-border rounded-md hover:bg-background-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200 cursor-pointer"
-          >
-            {t.common.logout}
-          </button>
-        </div>
-      </header>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="font-heading text-2xl font-bold text-text mb-6">{t.dashboard.title}</h1>
         {store && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Sidebar Navigation */}
@@ -137,6 +158,12 @@ export default function DashboardPage() {
                   className="block px-4 py-2 text-text bg-primary-50 rounded-md font-medium transition-colors duration-200 cursor-pointer"
                 >
                   {t.dashboard.overview}
+                </Link>
+                <Link
+                  href="/dashboard/menu/edit"
+                  className="block px-4 py-2 text-text-muted hover:bg-background-muted rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200 cursor-pointer"
+                >
+                  Chỉnh menu (bắt đầu)
                 </Link>
                 <Link
                   href="/dashboard/menu"
@@ -161,6 +188,12 @@ export default function DashboardPage() {
                   className="block px-4 py-2 text-text-muted hover:bg-background-muted rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200 cursor-pointer"
                 >
                   {t.dashboard.orders}
+                </Link>
+                <Link
+                  href="/dashboard/analytics"
+                  className="block px-4 py-2 text-text-muted hover:bg-background-muted rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200 cursor-pointer"
+                >
+                  Thống kê nâng cao
                 </Link>
                 <Link
                   href="/setup/subscription"
@@ -188,7 +221,8 @@ export default function DashboardPage() {
                   <div>
                     <span className="text-sm font-medium text-text-muted block mb-1">{t.dashboard.urlSlug}:</span>
                     <p className="text-base text-text font-mono bg-background-muted px-3 py-2 rounded border border-border">{store.slug}</p>
-                    <p className="text-xs text-text-muted mt-1">{t.dashboard.menuUrl}: <span className="font-mono">/menu/{store.slug}</span></p>
+                    <p className="text-xs text-text-muted mt-2 mb-2">{t.dashboard.menuUrl}</p>
+                    <PublicMenuLinkBlock slug={store.slug} />
                   </div>
                   <div>
                     <span className="text-sm font-medium text-text-muted block mb-1">{t.dashboard.publicationStatus}:</span>
@@ -247,13 +281,39 @@ export default function DashboardPage() {
                   )}
                   {store.subStatus === 'ACTIVE' && (
                     <div className="block p-4 border border-green-300 rounded-lg bg-green-50">
-                      <h4 className="font-medium text-green-900 mb-1">{t.dashboard.menuIsLive}</h4>
-                      <p className="text-sm text-green-700">
-                        {t.dashboard.menuIsLiveDesc}: <span className="font-mono text-xs">/menu/{store.slug}</span>
-                      </p>
+                      <h4 className="font-medium text-green-900 mb-2">{t.dashboard.menuIsLive}</h4>
+                      <p className="text-sm text-green-800 mb-3">{t.dashboard.menuIsLiveDesc}</p>
+                      <PublicMenuLinkBlock slug={store.slug} showQr={false} />
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Stats */}
+              <div className="card p-6">
+                <h3 className="font-heading text-lg font-semibold text-text mb-4">
+                  Thống kê tổng quan
+                </h3>
+                {statsLoading || !stats ? (
+                  <div className="text-sm text-text-muted">Đang tải thống kê...</div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 rounded border border-border bg-background-muted">
+                      <div className="text-sm text-text-muted">Đơn hàng chờ xử lý</div>
+                      <div className="text-2xl font-semibold text-text mt-1">{stats.pendingOrdersCount ?? 0}</div>
+                    </div>
+                    <div className="p-4 rounded border border-border bg-background-muted">
+                      <div className="text-sm text-text-muted">Số bill đã hoàn thành hôm nay</div>
+                      <div className="text-2xl font-semibold text-text mt-1">{stats.completedBillsTodayCount ?? 0}</div>
+                    </div>
+                    <div className="p-4 rounded border border-border bg-background-muted">
+                      <div className="text-sm text-text-muted">Doanh thu (tổng)</div>
+                      <div className="text-2xl font-semibold text-text mt-1">
+                        {Number(stats.revenueTotal ?? 0).toLocaleString('vi-VN')} VNĐ
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Status Banner */}

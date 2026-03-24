@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="008-create-store-staff-table" author="restaurant-saas">
+        <createTable tableName="store_staff">
+            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="store_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="store_staff"
+            columnNames="store_id, user_id"
+            constraintName="uk_store_staff_store_user"/>
+
+        <addForeignKeyConstraint
+            baseTableName="store_staff"
+            baseColumnNames="store_id"
+            constraintName="fk_store_staff_store"
+            referencedTableName="stores"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+
+        <createIndex indexName="idx_store_staff_store_id" tableName="store_staff">
+            <column name="store_id"/>
+        </createIndex>
+        <createIndex indexName="idx_store_staff_user_id" tableName="store_staff">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
+

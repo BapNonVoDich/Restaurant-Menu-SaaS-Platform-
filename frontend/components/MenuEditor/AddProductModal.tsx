@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ProductItem } from '@/lib/menuEditor/types'
+import { createDefaultProductElements } from '@/lib/menuEditor/productHelpers'
 import toast from 'react-hot-toast'
 
 interface AddProductModalProps {
@@ -29,7 +30,7 @@ export default function AddProductModal({
     isAvailable: true,
     sortOrder: 0
   })
-  const [loading, setLoading] = useState(false)
+  const isSubmittingRef = useRef(false)
 
   useEffect(() => {
     if (isOpen) {
@@ -48,6 +49,11 @@ export default function AddProductModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // ✅ Prevent multiple simultaneous submissions
+    if (isSubmittingRef.current) {
+      return
+    }
+    
     if (!formData.name.trim()) {
       toast.error('Vui lòng nhập tên sản phẩm')
       return
@@ -58,64 +64,39 @@ export default function AddProductModal({
       return
     }
 
-    setLoading(true)
+    isSubmittingRef.current = true
+    
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
-      const response = await fetch(`${apiUrl}/catalog/stores/${storeId}/products`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      // ✅ Chỉ tạo product trong state, không gọi API
+      // Product sẽ được sync với DB khi user nhấn "Lưu"
+      // Note: createDefaultProductElements is imported at top level to avoid race conditions
+      
+      const newProduct: ProductItem = {
+        id: `prod-${Date.now()}-${Math.random()}`, // Temporary ID
+        name: formData.name,
+        description: formData.description || '',
+        price: parseFloat(formData.price),
+        imageUrl: formData.imageUrl || '',
+        isAvailable: formData.isAvailable,
+        sortOrder: formData.sortOrder || 0,
+        categoryIds: [categoryId],
+        style: {
+          cardLayout: 'detailed',
+          showImage: !!formData.imageUrl,
+          showDescription: !!formData.description,
+          showPrice: true
         },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description || null,
-          price: parseFloat(formData.price),
-          imageUrl: formData.imageUrl || null,
-          isAvailable: formData.isAvailable,
-          sortOrder: formData.sortOrder,
-          categoryIds: [categoryId]
-        })
-      })
-
-      if (response.ok) {
-        const productData = await response.json()
-        
-        // Transform API response to ProductItem format
-        const newProduct: ProductItem = {
-          id: productData.id,
-          name: productData.name,
-          description: productData.description,
-          price: parseFloat(productData.price),
-          imageUrl: productData.imageUrl,
-          isAvailable: productData.isAvailable !== false,
-          sortOrder: productData.sortOrder || 0,
-          categoryIds: [categoryId],
-          style: {
-            cardLayout: 'detailed',
-            showImage: !!productData.imageUrl,
-            showDescription: !!productData.description,
-            showPrice: true
-          },
-          children: [] // Will be initialized with default elements
-        }
-        
-        // Initialize with default nested elements
-        const { createDefaultProductElements } = await import('@/lib/menuEditor/productHelpers')
-        newProduct.children = createDefaultProductElements(newProduct)
-
-        onProductAdded(newProduct)
-        toast.success('Đã thêm sản phẩm thành công!')
-        onClose()
-      } else {
-        const errorData = await response.json().catch(() => ({}))
-        toast.error(errorData.error || 'Không thể thêm sản phẩm')
+        children: [] // Will be initialized with default elements
       }
-    } catch (error) {
-      console.error('Error adding product:', error)
-      toast.error('Lỗi khi thêm sản phẩm')
+      
+      // Initialize with default nested elements
+      newProduct.children = createDefaultProductElements(newProduct)
+
+      onProductAdded(newProduct)
+      toast.success('Đã thêm sản phẩm vào danh sách. Nhấn "Lưu" để lưu vào cơ sở dữ liệu.')
+      onClose()
     } finally {
-      setLoading(false)
+      isSubmittingRef.current = false
     }
   }
 
@@ -232,10 +213,9 @@ export default function AddProductModal({
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
             >
-              {loading ? 'Đang thêm...' : 'Thêm sản phẩm'}
+              Thêm sản phẩm
             </button>
           </div>
         </form>

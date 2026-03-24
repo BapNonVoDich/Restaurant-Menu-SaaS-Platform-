@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;INIT=CREATE SCHEMA IF NOT EXISTS public\;SET SCHEMA public
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    initialization-mode: always
+    schema-locations: classpath:data-test.sql
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+    show-sql: true
+  liquibase:
+    enabled: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+jwt:
+  secret: test-secret-key-for-testing-purposes-only-minimum-256-bits
+  expiration: 86400000
+
+logging:
+  level:
+    com.restaurantsaas.identity: DEBUG

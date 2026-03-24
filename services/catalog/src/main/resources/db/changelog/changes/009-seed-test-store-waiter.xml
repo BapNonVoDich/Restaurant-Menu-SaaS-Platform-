@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="009-seed-test-store-waiter" author="restaurant-saas">
+        <sql>
+            INSERT INTO store_staff (id, store_id, user_id, role, created_at)
+            VALUES (
+                '00000000-0000-0000-0000-000000000041',
+                '00000000-0000-0000-0000-000000000011',
+                '00000000-0000-0000-0000-000000000002',
+                'WAITER',
+                CURRENT_TIMESTAMP
+            );
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

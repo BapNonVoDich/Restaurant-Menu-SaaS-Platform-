@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { CategoryItem, CustomElement, CustomizationSettings, MenuTemplate } from '@/lib/menuEditor/types'
+import { generateMenuHTML } from '@/lib/menuEditor/menuGenerator'
+import PreviewModal from './PreviewModal'
 import toast from 'react-hot-toast'
 
 interface TemplateModalProps {
@@ -30,6 +32,8 @@ export default function TemplateModal({
   const [templateName, setTemplateName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [previewTemplate, setPreviewTemplate] = useState<MenuTemplate | null>(null)
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop')
 
   const loadTemplates = useCallback(async () => {
     setLoading(true)
@@ -178,6 +182,17 @@ export default function TemplateModal({
     }
   }
 
+  const handlePreviewTemplate = (template: MenuTemplate) => {
+    // For preview, merge template categories/products with current customization and customElements
+    // This ensures preview shows template data with current styles
+    const previewTemplate: MenuTemplate = {
+      ...template,
+      customization: currentCustomization, // Use current customization for preview
+      customElements: currentCustomElements // Use current customElements for preview
+    }
+    setPreviewTemplate(previewTemplate)
+  }
+
   if (!isOpen) return null
 
   return (
@@ -281,6 +296,12 @@ export default function TemplateModal({
                     </div>
                     <div className="flex gap-2">
                       <button
+                        onClick={() => handlePreviewTemplate(template)}
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                      >
+                        👁️ Xem trước
+                      </button>
+                      <button
                         onClick={() => handleApplyTemplate(template)}
                         className="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
                       >
@@ -310,6 +331,21 @@ export default function TemplateModal({
           </button>
         </div>
       </div>
+
+      {/* Preview Modal */}
+      {previewTemplate && (
+        <PreviewModal
+          html={generateMenuHTML(
+            previewTemplate.categories || [],
+            previewTemplate.customElements || [],
+            previewTemplate.customization || currentCustomization,
+                'Mẫu template'
+          )}
+          mode={previewMode}
+          onModeChange={setPreviewMode}
+          onClose={() => setPreviewTemplate(null)}
+        />
+      )}
     </div>
   )
 }

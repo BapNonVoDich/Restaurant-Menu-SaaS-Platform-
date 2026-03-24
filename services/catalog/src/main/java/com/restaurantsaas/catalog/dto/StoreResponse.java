@@ -24,6 +24,12 @@ public class StoreResponse {
     private LocalDateTime trialStartDate;
     private LocalDateTime trialEndDate;
     private String menuHtml;
+    private String menuData;
+    private String menuFileUrl;
+    private String menuTemplateKey;
+    private Boolean tableOrderingEnabled;
+    private String customDomain;
+    private Boolean domainVerified;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

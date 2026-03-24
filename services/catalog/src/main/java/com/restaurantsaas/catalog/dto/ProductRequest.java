@@ -24,4 +24,7 @@ public class ProductRequest {
     private String imageUrl;
     private Boolean isAvailable = true;
     private Integer sortOrder = 0;
+
+    // JSON string describing how this product card should look on the menu
+    private String styleJson;
 }

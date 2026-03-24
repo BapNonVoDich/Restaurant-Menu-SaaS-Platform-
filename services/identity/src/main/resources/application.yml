@@ -34,8 +34,8 @@ spring:
       timeout: 2000ms
 
 jwt:
-  secret: restaurant-saas-secret-key-change-in-production-minimum-256-bits
-  expiration: 86400000 # 24 hours in milliseconds
+  secret: ${JWT_SECRET:restaurant-saas-secret-key-change-in-production-minimum-256-bits}
+  expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
 
 logging:
   level:

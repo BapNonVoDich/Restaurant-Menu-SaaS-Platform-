@@ -27,6 +27,14 @@ public class JwtExtractor {
             return null;
         }
 
+        return extractUserIdFromToken(token);
+    }
+
+    public UUID extractUserIdFromToken(String token) {
+        if (token == null || token.isBlank()) {
+            return null;
+        }
+
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(getSigningKey())

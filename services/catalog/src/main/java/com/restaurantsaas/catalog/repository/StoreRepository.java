@@ -12,4 +12,8 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
     Optional<Store> findByOwnerId(UUID ownerId);
     Optional<Store> findBySlug(String slug);
     boolean existsBySlug(String slug);
+
+    Optional<Store> findByCustomDomainIgnoreCase(String customDomain);
+
+    Optional<Store> findByCustomDomainIgnoreCaseAndDomainVerifiedTrue(String customDomain);
 }

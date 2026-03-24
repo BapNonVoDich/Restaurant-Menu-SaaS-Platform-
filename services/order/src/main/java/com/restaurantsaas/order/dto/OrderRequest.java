@@ -12,6 +12,9 @@ public class OrderRequest {
     private String customerName;
     private String customerPhone;
 
+    /** Mã / tên bàn khi cửa hàng bật đặt món theo bàn */
+    private String tableLabel;
+
     @NotEmpty(message = "Order items are required")
     @Valid
     private List<OrderItemRequest> items;

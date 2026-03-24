@@ -30,21 +30,28 @@ export default function LoginPage() {
 
       if (response.ok) {
         const data = await response.json()
+        const roles: string[] = data.roles || []
         // Store JWT token
         localStorage.setItem('token', data.token)
-        // Redirect to dashboard or setup flow
-        router.push('/dashboard')
+        localStorage.setItem('auth_user', JSON.stringify({
+          userId: data.userId,
+          username: data.username,
+          email: data.email,
+          roles,
+        }))
+        const isWaiterOnly = roles.includes('WAITER') && !roles.includes('STORE_OWNER')
+        router.push(isWaiterOnly ? '/staff' : '/dashboard')
       } else {
         // Handle error - try to get error message from response
         const errorData = await response.json().catch(() => ({}))
         const errorMessage = errorData.error || 
                            Object.values(errorData).join(', ') || 
-                           'Login failed. Please check your credentials.'
+                           'Đăng nhập thất bại. Vui lòng kiểm tra tên đăng nhập và mật khẩu.'
         setError(errorMessage)
       }
     } catch (error) {
       console.error('Login error:', error)
-      setError(`Network error: ${error instanceof Error ? error.message : 'Please try again'}`)
+        setError(`Lỗi kết nối: ${error instanceof Error ? error.message : 'Vui lòng thử lại'}`)
     } finally {
       setLoading(false)
     }
@@ -55,17 +62,17 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-8 card shadow-soft-lg p-8 sm:p-10">
         <div>
           <h2 className="font-heading mt-6 text-center text-3xl font-bold text-text">
-            Sign in to your account
+            Đăng nhập vào tài khoản của bạn
           </h2>
           <p className="mt-2 text-center text-sm text-text-muted">
-            Enter your credentials to access your dashboard
+            Nhập thông tin để truy cập trang quản lý
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit} method="post" action="#">
           <div className="space-y-4">
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-text mb-1">
-                Username
+                Tên đăng nhập
               </label>
               <input
                 id="username"
@@ -80,7 +87,7 @@ export default function LoginPage() {
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-text mb-1">
-                Password
+                Mật khẩu
               </label>
               <input
                 id="password"
@@ -109,16 +116,22 @@ export default function LoginPage() {
               disabled={loading}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </button>
           </div>
 
-          <div className="text-center">
+          <div className="text-center space-y-2">
             <Link
               href="/auth/register"
-              className="text-sm text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 rounded transition-colors duration-200 cursor-pointer"
+              className="block text-sm text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 rounded transition-colors duration-200 cursor-pointer"
             >
-              Don&apos;t have an account? Register
+              Bạn chưa có tài khoản? Đăng ký chủ cửa hàng
+            </Link>
+            <Link
+              href="/auth/register-staff"
+              className="block text-sm text-amber-700 hover:text-amber-800"
+            >
+              Đăng ký làm nhân viên (WAITER)
             </Link>
           </div>
         </form>

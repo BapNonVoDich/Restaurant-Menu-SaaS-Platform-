@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -21,6 +20,14 @@ public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
     private final JwtExtractor jwtExtractor;
+
+    private static String clientIp(HttpServletRequest req) {
+        String xff = req.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) {
+            return xff.split(",")[0].trim();
+        }
+        return req.getRemoteAddr();
+    }
 
     @PostMapping("/pay")
     public ResponseEntity<PaymentUrlResponse> createSubscriptionPayment(
@@ -33,7 +40,8 @@ public class SubscriptionController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
-            PaymentUrlResponse response = subscriptionService.createSubscriptionPayment(storeId, userId, request);
+            String clientIp = clientIp(httpRequest);
+            PaymentUrlResponse response = subscriptionService.createSubscriptionPayment(storeId, userId, request, clientIp);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

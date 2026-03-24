@@ -7,7 +7,14 @@ spring:
   cloud:
     gateway:
       routes:
-        # Identity Service
+        # Identity Service - v1
+        - id: identity-service-v1
+          uri: http://${IDENTITY_SERVICE_HOST:localhost}:${IDENTITY_SERVICE_PORT:8081}
+          predicates:
+            - Path=/api/v1/identity/**
+          filters:
+            - StripPrefix=3
+        # Identity Service - Legacy (backward compatibility)
         - id: identity-service
           uri: http://${IDENTITY_SERVICE_HOST:localhost}:${IDENTITY_SERVICE_PORT:8081}
           predicates:
@@ -15,7 +22,14 @@ spring:
           filters:
             - StripPrefix=2
 
-        # Catalog Service
+        # Catalog Service - v1
+        - id: catalog-service-v1
+          uri: http://${CATALOG_SERVICE_HOST:localhost}:${CATALOG_SERVICE_PORT:8082}
+          predicates:
+            - Path=/api/v1/catalog/**
+          filters:
+            - StripPrefix=3
+        # Catalog Service - Legacy (backward compatibility)
         - id: catalog-service
           uri: http://${CATALOG_SERVICE_HOST:localhost}:${CATALOG_SERVICE_PORT:8082}
           predicates:
@@ -23,7 +37,14 @@ spring:
           filters:
             - StripPrefix=2
 
-        # Order Service
+        # Order Service - v1
+        - id: order-service-v1
+          uri: http://${ORDER_SERVICE_HOST:localhost}:${ORDER_SERVICE_PORT:8083}
+          predicates:
+            - Path=/api/v1/order/**
+          filters:
+            - StripPrefix=3
+        # Order Service - Legacy (backward compatibility)
         - id: order-service
           uri: http://${ORDER_SERVICE_HOST:localhost}:${ORDER_SERVICE_PORT:8083}
           predicates:
@@ -31,7 +52,14 @@ spring:
           filters:
             - StripPrefix=2
 
-        # Payment Service
+        # Payment Service - v1
+        - id: payment-service-v1
+          uri: http://${PAYMENT_SERVICE_HOST:localhost}:${PAYMENT_SERVICE_PORT:8084}
+          predicates:
+            - Path=/api/v1/payment/**
+          filters:
+            - StripPrefix=3
+        # Payment Service - Legacy (backward compatibility)
         - id: payment-service
           uri: http://${PAYMENT_SERVICE_HOST:localhost}:${PAYMENT_SERVICE_PORT:8084}
           predicates:
@@ -39,14 +67,14 @@ spring:
           filters:
             - StripPrefix=2
 
-      # Rate limiter disabled for now - can be re-enabled after testing
-      # default-filters:
-      #   - name: RequestRateLimiter
-      #     args:
-      #       redis-rate-limiter.replenishRate: 10
-      #       redis-rate-limiter.burstCapacity: 20
-      #       redis-rate-limiter.requestedTokens: 1
-      #       key-resolver: "#{@ipKeyResolver}"
+      # Rate limiting enabled
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 10
+            redis-rate-limiter.burstCapacity: 20
+            redis-rate-limiter.requestedTokens: 1
+            key-resolver: "#{@ipKeyResolver}"
 
   # Redis configuration - only needed if rate limiter is enabled
   data:
@@ -68,3 +96,7 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web: INFO
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}

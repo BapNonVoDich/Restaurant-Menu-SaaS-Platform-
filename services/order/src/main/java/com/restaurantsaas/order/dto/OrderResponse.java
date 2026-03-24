@@ -20,6 +20,7 @@ public class OrderResponse {
     private UUID storeId;
     private String customerName;
     private String customerPhone;
+    private String tableLabel;
     private BigDecimal totalAmount;
     private Order.OrderStatus status;
     private Order.PaymentMethod paymentMethod;

@@ -34,10 +34,20 @@ vnpay:
   hash-secret: ${VNPAY_HASH_SECRET:}
   url: ${VNPAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
   return-url: ${VNPAY_RETURN_URL:http://localhost:3000/payment/return}
+  # URL công khai tới payment-service (sandbox: ngrok hoặc host:8084). VNPay POST IPN tới đây.
+  ipn-url: ${VNPAY_IPN_URL:http://localhost:8084/vnpay/ipn}
   api-url: ${VNPAY_API_URL:https://sandbox.vnpayment.vn/merchant_webapi/api/transaction}
 
+# Gọi trực tiếp catalog (Docker: http://catalog:8082)
+catalog:
+  base-url: ${CATALOG_SERVICE_URL:http://localhost:8082}
+
+# Phải trùng với internal.subscription-key trên catalog-service
+internal:
+  subscription-key: ${INTERNAL_SUBSCRIPTION_KEY:}
+
 jwt:
-  secret: restaurant-saas-secret-key-change-in-production-minimum-256-bits
+  secret: ${JWT_SECRET:restaurant-saas-secret-key-change-in-production-minimum-256-bits}
 
 logging:
   level:
